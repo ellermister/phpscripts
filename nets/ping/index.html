@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>網路偵測工具</title>
+  </head>
+  <body>
+    <div class="container">
+			<div class="card" style="margin-top: 25px;">
+			  <div class="card-header">
+			    TCP ping
+			  </div>
+			  <div class="card-body">
+			    <h5 class="card-title">請提供需要檢測IP地址，將通過多種方式檢測伺服器是否能夠連通。</h5>
+			     <div class="form-group">
+				    <label for="exampleInputEmail1">IP地址：</label>
+				    <input type="text" class="form-control" id="ip"  placeholder="Enter IP">
+				    <small id="emailHelp" class="form-text text-muted">目前僅支持IPv4.</small>
+				  </div>
+			    <p class="card-text">Tcping + icmp.</p>
+			    <a href="javascript:void(0)" class="btn btn-primary" id="startcheck">開始檢測</a>
+			    <div class="alert alert-primary" role="alert" style="margin-top:10px; display: none;" id="check-alert">
+				  正在檢測，請稍後!
+				</div>
+			  </div>
+			</div>
+			
+			<div class="card" style="margin-top:10px; display: none;" id="result">
+				<table class="table table-bordered">
+				  <thead>
+				    <tr>
+				      <th scope="col">運營商</th>
+				      <th scope="col">TCP(22)</th>
+				      <th scope="col">ICMP</th>
+				      <th scope="col">HTTP(80)</th>
+				    </tr>
+				  </thead>
+				  <tbody>
+				  </tbody>
+				</table>
+			</div>
+	</div>
+	<script type="text/html" id="tpl-result">
+		<tr>
+	      <th scope="row">{{service}}</th>
+	      {{if tcp == '200'}}
+	        <td><button class="btn btn-sm bg-success">連通</button></td>
+      	  {{else}}
+	        <td><button class="btn btn-sm bg-danger">未連通</button></td>
+	      {{/if}}
+	      {{if icmp == '200'}}
+	        <td><button class="btn btn-sm bg-success">連通</button></td>
+      	  {{else}}
+	        <td><button class="btn btn-sm bg-danger">未連通</button></td>
+	      {{/if}}
+	      {{if http == '200'}}
+	        <td><button class="btn btn-sm bg-success">連通</button></td>
+      	  {{else}}
+	        <td><button class="btn btn-sm bg-danger">未連通</button></td>
+	      {{/if}}
+	    </tr>
+	</script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="template-web.js"></script>
+    <script type="text/javascript">
+    	$('#startcheck').click(function(){
+    		var ip = $('#ip').val();
+    		$('#check-alert').show();
+    		$('#result').show();
+    		$.ajax({
+    			type:"post",
+    			url:"ping.php",
+    			async:true,
+    			data:{ip:ip},
+    			dataType:'json',
+    			success:function(i){
+    				if(i.status == 0){
+    					var html = template('tpl-result', i.datas);
+    					$("#result tbody").append(html);
+    				}
+    				console.log(i);
+    			},complete:function(){
+    				$('#check-alert').hide();
+    			}
+    		});
+    	});
+    </script>
+  </body>
+</html>
