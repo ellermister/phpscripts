@@ -1,5 +1,7 @@
 .project
 *.log
 *.temp
+.env
+.idea/
 
 /caches/
