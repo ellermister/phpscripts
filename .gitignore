@@ -3,5 +3,5 @@
 *.temp
 .env
 .idea/
-
+/vendor/
 /caches/
