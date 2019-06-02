@@ -2,6 +2,7 @@
 *.log
 *.temp
 .env
+config.env
 .idea/
 /vendor/
 /caches/
