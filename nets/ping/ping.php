@@ -168,6 +168,30 @@ function hash_token($secret, $time, $data)
 }
 
 /**
+ * safe base64 encode
+ * @param $text
+ * @return mixed
+ */
+function safe_base64_encode($text){
+    return str_replace(['+','/','='], ['-','_',''], base64_encode($text));
+}
+
+/**
+ * safe base64 decode
+ * @param $text
+ * @return bool|mixed|string
+ */
+function safe_base64_decode($text){
+    $data = str_replace(['-','_'], ['+','/'], $text);
+    $mod4 = strlen($data) % 4;
+    if ($mod4) {
+        $data .= substr('====', $mod4);
+    }
+    $data = base64_decode($data);
+    return $data;
+}
+
+/**
  * 通信加密2
  * @param $plaintext
  * @param $key
@@ -207,7 +231,7 @@ function fetch_remote($task)
         $url = sprintf(API_FETCH . '?id=%s&token=%s', NODE_ID, $token);
         $response = file_get_contents($url);
         $result = json_decode($response, true);
-        $old = json_decode(file_get_contents($task), true);
+        @$old = json_decode(file_get_contents($task), true);
         foreach ($result['datas'] as $ip => $portList) {
             $old[$ip] = $portList;
         }
@@ -232,7 +256,7 @@ function push_remote($answer)
             $data = net_encrypt_data2($data, NODE_SECRET);
 
             $token = hash_token(NODE_SECRET, date('YmdHi'), $data);
-            $url = sprintf(API_FETCH . '?id=%s&token=%s', NODE_ID, $token);
+            $url = sprintf(API_PUSH . '?id=%s&token=%s', NODE_ID, $token);
 
             $client = new \GuzzleHttp\Client();
             $headers = ['content-type' => 'application/x-www-form-urlencoded;charset=UTF-8'];
@@ -261,7 +285,7 @@ if (is_cli()) {
 
     $command = parse_command($argv);
     if (!isset($command[0])) {
-        echo sprintf('請給予參數:%sphp %s [command]' . PHP_EOL . '  -- command = [listen, scan]' . PHP_EOL, PHP_EOL, current_script());
+        echo sprintf('請給予參數:%sphp %s [command]' . PHP_EOL . '  -- command = [listen, scan, token, push_remote]' . PHP_EOL, PHP_EOL, current_script());
         die;
     }
 
@@ -300,7 +324,7 @@ if (is_cli()) {
     // 常駐後台掃描任務&提交任務
     elseif ($command[0] == 'scan') {
 
-        if (!is_file($task)) {
+        if (!is_file($task) && empty(API_FETCH)) {
             echo '任務不存在!';
             die;
         }
@@ -342,6 +366,11 @@ if (is_cli()) {
     // 生成臨時訪問TOKEN
     else if ($command[0] == 'token') {
         echo hash_token(NODE_SECRET, date('YmdHi'), '') . PHP_EOL;
+    }
+
+    // 提交PUSH REMOTE
+    else if ($command[0] == 'push_remote') {
+        push_remote($answer);
     }
 
 
