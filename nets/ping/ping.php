@@ -126,7 +126,7 @@ function tcping_check_async_result($ip, $port)
     while(is_file($path)){
         @unlink($path);
     }
-    return $result;
+    return $result ?? false;
 }
 
 
@@ -300,7 +300,7 @@ function net_decrypt_data2($ciphertext, $key, $cipher = 'RC4')
  */
 function fetch_remote($task)
 {
-    if (!empty(API_FETCH)) {
+    if (API_FETCH != '') {
         $token = hash_token(NODE_SECRET, date('YmdHi'), '');
         $url = sprintf(API_FETCH . '?id=%s&token=%s', NODE_ID, $token);
         $response = file_get_contents($url);
@@ -321,7 +321,7 @@ function fetch_remote($task)
  */
 function push_remote($answer)
 {
-    if (!empty(API_PUSH)) {
+    if (API_PUSH != '') {
         @$raw = file_get_contents($answer);
         @$result = json_decode($raw, true);
 
@@ -397,7 +397,7 @@ if (is_cli()) {
 
     // 常駐後台掃描任務&提交任務
     elseif ($command[0] == 'scan') {
-        if (!is_file($task) && empty(API_FETCH)) {
+        if (!is_file($task) && API_FETCH == '') {
             echo '任務不存在!';
             die;
         }
