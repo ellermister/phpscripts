@@ -29,6 +29,7 @@ defined('API_FETCH') or define('API_FETCH', '');
 defined('API_PUSH') or define('API_PUSH', '');
 defined('FILE_TASK') or define('FILE_TASK', 'task.temp');
 defined('FILE_ANSWER') or define('FILE_ANSWER', 'answer.temp');
+defined('IS_DEBUG') or define('IS_DEBUG', false);
 
 
 /**
@@ -81,6 +82,79 @@ function tcping_check($ip, $port = '80')
         }
     }
     return false;
+}
+
+function tcping_check_async($ip, $port)
+{
+    $filename = $ip.'_'.$port.'.temp';
+    if (current_os() == 'windows') {
+        $format = ' @echo off
+%s
+del %%0 ';
+
+        $command = 'cmd /c tcping.exe -n 1 -i 2 -p ' . $port . ' ' . $ip;
+        $command = sprintf('%s >caches/%s', $command, $filename);
+        file_put_contents($filename.'.bat', sprintf($format, $command));
+
+        $startFormat = ' Set ws = CreateObject("Wscript.Shell") 
+ws.run "cmd /c %s", vbhide
+Set fso = CreateObject("Scripting.FileSystemObject") 
+f = fso.DeleteFile(WScript.ScriptName)
+';
+        file_put_contents($filename.'.vbs', sprintf($startFormat,  $filename.'.bat'));
+        pclose(popen('start '.$filename.'.vbs', 'r'));
+    } elseif (current_os() == 'linux'){
+        $command = 'tcping -t 2 ' . $ip . ' ' . $port;
+        pclose(popen(sprintf('%s > caches/%s &', $command, $filename), 'r'));
+    }
+}
+
+
+function tcping_check_async_result($ip, $port)
+{
+    $filename = $ip.'_'.$port.'.temp';
+    $path = realpath('caches/'.$filename);
+    while(is_file($path)){
+        $output = file_get_contents($path);
+        $result = tcping_result($output);
+        if($result !== -1){
+            break;
+        }
+        unset($output);
+    }
+
+    while(is_file($path)){
+        @unlink($path);
+    }
+    return $result;
+}
+
+
+function tcping_result($output)
+{
+    if (current_os() == 'windows') {
+        if (preg_match('/Was unable to connect/', $output)) {
+            return false;
+        }
+        if (preg_match('/Could not/', $output)) {
+            //DNS: Could not find host - 22, aborting
+            return false;
+        }
+        if (preg_match('/Average/', $output)) {
+            return true;
+        }
+    } elseif (current_os() == 'linux') {
+        if (preg_match('/timeout/', $output)) {
+            return false;
+        }
+        if (preg_match('/closed/', $output)) {
+            return false;
+        }
+        if (preg_match('/open/', $output)) {
+            return true;
+        }
+    }
+    return -1;
 }
 
 
@@ -323,13 +397,13 @@ if (is_cli()) {
 
     // 常駐後台掃描任務&提交任務
     elseif ($command[0] == 'scan') {
-
         if (!is_file($task) && empty(API_FETCH)) {
             echo '任務不存在!';
             die;
         }
         echo '執行任務~' . PHP_EOL;
         while (1) {
+            $begin_time = time();
             fetch_remote($task);
 
             if (!is_file($task)) {
@@ -346,12 +420,27 @@ if (is_cli()) {
             }
 
             $assignment = [];
+            $index = 0;
+            foreach ($taskList as $ip => $portList) {
+                $index2 = 0;
+                $index++;
+                foreach ($portList as $port) {
+                    $index2++;
+                    tcping_check_async($ip, $port);
+                    if(IS_DEBUG){
+                        echo sprintf("try %s:%s  [%s]".PHP_EOL,$ip, $port,$index.'/'.count($taskList).','.$index2.'/'.count($portList));
+                    }
+                }
+                usleep(100);
+            }
+            echo '啟動腳本完畢，耗時：'.(time()-$begin_time).'秒'.PHP_EOL;
+
+            //等待所有請求執行完畢
             foreach ($taskList as $ip => $portList) {
                 foreach ($portList as $port) {
-                    $connected = tcping_check($ip, $port);
-                    $assignment[$ip][$port] = $connected;
+                    $assignment[$ip][$port] = tcping_check_async_result($ip, $port);
                 }
-                sleep(1);
+                usleep(10000);
             }
 
             $format = json_encode($assignment, JSON_PRETTY_PRINT);
@@ -359,6 +448,10 @@ if (is_cli()) {
 
             //PUSH REMOTE
             push_remote($answer);
+
+            $end_time = time();
+            $takeUpTime = $end_time - $begin_time;
+            echo '掃描完畢，耗時：'.$takeUpTime.'秒'.PHP_EOL;
 
         }
     }
