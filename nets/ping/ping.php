@@ -452,7 +452,7 @@ if (is_cli()) {
             $end_time = time();
             $takeUpTime = $end_time - $begin_time;
             echo '掃描完畢，耗時：'.$takeUpTime.'秒'.PHP_EOL;
-
+            break;
         }
     }
 
