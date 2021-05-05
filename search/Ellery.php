@@ -282,6 +282,19 @@ class Ellery
     function processRead($filename, $index, $singleProcessLength)
     {
         $fh = fopen($filename, 'r');
+		
+		if(!is_resource($fh)){
+			echo "文件打开失败:".$filename.PHP_EOL;
+			$error_num =0;
+			while(!$fh = fopen($filename, 'r')){
+				$error_num++;sleep(1);
+				if($error_num >3){break;}
+			}
+			if(!is_resource($fh)){
+				echo "文件尝试多次打开失败:".$filename.PHP_EOL;
+			}
+			return;
+		}
 
         $beginPos = $index * $singleProcessLength;
         //结束位置=线程序列*线程处理数据长度+线程处理数据 - 1 (长度转指针，实际结束指针小于结束长度)
@@ -344,6 +357,7 @@ class Ellery
                 unset($value);
             }
             $chan->push($_data);
+            $chan->push(null);
             unset($_data);
         });
 
@@ -397,7 +411,7 @@ class Ellery
 
         for ($n = $this->maxProcess; $n--;) {
             $status = Process::wait(true);
-            echo "Recycled #{$status['pid']}, code={$status['code']}, signal={$status['signal']}" . PHP_EOL;
+            echo "< Recycled #{$status['pid']}, code={$status['code']}, signal={$status['signal']}" . PHP_EOL;
         }
         echo 'Parent #' . getmypid() . ' exit' . PHP_EOL;
         $endTime = time();
