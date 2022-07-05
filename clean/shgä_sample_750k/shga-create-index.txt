@@ -1,0 +1,97 @@
+PUT /sh_ga_person_info_sample
+{
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "properties": {
+      "QUERY_STRING": {
+        "type": "text",
+        "analyzer": "ik_max_word"
+      },
+      "RNAME": {
+        "type": "text",
+        "analyzer": "ik_max_word"
+      },
+      "HHPLACE": {
+        "type": "text",
+        "analyzer": "ik_max_word"
+      },
+      "BPLACE": {
+        "type": "text",
+        "analyzer": "ik_max_word"
+      },
+      "PROF":{
+         "type": "text",
+        "analyzer": "ik_max_word"
+      },
+      "NPLACE":{
+         "type": "text",
+        "analyzer": "ik_max_word"
+      },
+      "RELI":{
+         "type": "text",
+        "analyzer": "ik_max_word"
+      },
+      "STD_ADDRESS":{
+        "type": "text",
+        "analyzer": "ik_max_word"
+      },
+      "IDNO":{
+        "type": "keyword"
+      }
+    }
+  }
+}
+
+
+PUT /sh_ga_address_merge_with_mobile_data_sample
+{
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "properties": {
+      "SRC_ADDRESS":{
+        "type": "text",
+         "analyzer": "ik_max_word"
+      }
+    }
+  }
+}
+
+PUT /sh_ga_case_data_index_sample
+{
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "properties": {
+      "STD_ADDRESS":{
+        "type": "text",
+        "analyzer": "ik_max_word"
+      },
+      "ADDR_DETL":{
+        "type": "object",
+        "properties": {
+          "CASE":{
+            "type":"object",
+            "properties":{
+              "BRIEF_CASE":{
+                "type":"text",
+                "analyzer": "ik_max_word"
+              }
+            }
+          },
+          "CASE_ADDRESS":{
+            "type":"text",
+            "analyzer": "ik_max_word"
+          }
+        }
+      }
+    }
+  }
+}
