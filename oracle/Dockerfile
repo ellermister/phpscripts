@@ -11,5 +11,6 @@ ADD https://github.com/ellermister/phpscripts/raw/master/oracle/keep.php /app/ke
 CMD ["php", "keep.php"]
 
 # Run example:
-# docker run -d --restart=always --name keep-oracle-jj-life
+# docker build -t ellermister/keep-oracle-jj-life .
+# docker run -d --restart=always --name keep-oracle-jj-life keep-oracle-jj-life
 #
