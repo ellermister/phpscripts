@@ -12,5 +12,5 @@ CMD ["php", "keep.php"]
 
 # Run example:
 # docker build -t ellermister/keep-oracle-jj-life .
-# docker run -d --restart=always --name keep-oracle-jj-life keep-oracle-jj-life
+# docker run -d --restart=always --name keep-oracle-jj-life ellermister/keep-oracle-jj-life
 #
