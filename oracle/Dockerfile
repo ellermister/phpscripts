@@ -1,4 +1,4 @@
-FROM php:8.2-cli
+FROM php:8.2.16-zts-alpine3.19
 
 RUN curl -sSL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o - | sh -s \
       pcntl
