@@ -10,7 +10,7 @@ pcntl_signal(SIGINT, function(){
 function testNetwork()
 {
     echo "[*] test network\n";
-    $bigFileUrl = "http://lg.hkg.hosthatch.com/100MB.test";
+    $bigFileUrl = "http://lg.hkg.hosthatch.com/1GB.test";
 
     $startTime = time();
     while (1) {
